@@ -149,7 +149,7 @@ ssl_gen.create_dh_key(int key_size,char* file_path);
 
 <b>Examples</b>
 
-From test project in main.cpp : [ssl-cert-generator subproject](http://akinaru.github.io/ssl-cert-generator-lib/master/sslcertgenerator/main.cpp)
+From test project in main.cpp : [ssl-cert-generator subproject](https://github.com/ssl-cert-generator-lib/master/sslcertgenerator/main.cpp)
 
 <i>Generate self-signed certificates</i>
 
