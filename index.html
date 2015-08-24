@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Ssl-cert-generator-lib by akinaru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Ssl-cert-generator-lib</h1>
+      <h2 class="project-tagline">OpenSSL certificate generator library</h2>
+      <a href="https://github.com/akinaru/ssl-cert-generator-lib" class="btn">View on GitHub</a>
+      <a href="https://github.com/akinaru/ssl-cert-generator-lib/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/akinaru/ssl-cert-generator-lib/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="ssl-cert-generator-library" class="anchor" href="#ssl-cert-generator-library" aria-hidden="true"><span class="octicon octicon-link"></span></a>SSL cert generator library</h1>
+
+<p><a href="http://akinaru.github.io/ssl-cert-generator-cpp/">http://akinaru.github.io/ssl-cert-generator-cpp/</a></p>
+
+<p><i>Last update 24/08/2015</i></p>
+
+<p>Generate SSL certificates using openssl api :</p>
+
+<ul>
+<li>generate X509 public/private key pair, output can be PEM, PKCS12 certs</li>
+<li>generate self-signed cert (which can be used as CA cert)</li>
+<li>generate X509 public/private key pair signed with a specific issuer cert or a CA</li>
+<li>generate a diffie hellman key</li>
+<li>output can be a specific file / certificates can be accessed programmatically as well</li>
+</ul>
+
+<hr>
+
+<h4>
+<a id="generality" class="anchor" href="#generality" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generality</h4>
+
+<p>Library is generated as a shared library (.dll or .so)</p>
+
+<pre><code>cd sslcertgenerator
+make
+</code></pre>
+
+<p>Library release is under <code>release</code> directory.</p>
+
+<p>You can export shared library to your library path to use it.</p>
+
+<hr>
+
+<h4>
+<a id="generate-self-signed-certificates-" class="anchor" href="#generate-self-signed-certificates-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generate self-signed certificates </h4>
+
+<p>Declare new instance of SslGen :</p>
+
+<pre><code>SslGen ssl_gen;
+</code></pre>
+
+<p>Generate self-signed certificates :</p>
+
+<pre><code>ssl_gen.create_standalone_keys(cert_entries *entries,struct tm *date_start,struct tm *date_end,int serial,char *passin,int rsa_key_size,certificate_raw *certs);
+</code></pre>
+
+<ul>
+<li>
+<code>entries</code> : a set of certificate entries with following structure :</li>
+</ul>
+
+<pre><code>typedef struct {
+    char *country_name;
+    char *state_province_name;
+    char *locality_name;
+    char *organization_name;
+    char *organizational_unit_name;
+    char *common_name;
+} cert_entries;
+</code></pre>
+
+<ul>
+<li>
+<code>date_start</code> and <code>date_end</code> specifying certificate validation timings</li>
+<li>
+<code>serial</code> : specifying certificate serial number to be used</li>
+<li>
+<code>passin</code> : optional password for private key</li>
+<li>
+<code>rsa_key_size</code> : size of key (2048 or more is prefered)</li>
+<li>
+<code>certificate_raw</code> : output pointer structure as following :</li>
+</ul>
+
+<pre><code>typedef struct {
+    char *public_key_pem;
+    int public_key_pem_length;
+    char *private_key_pem;
+    int private_key_pem_length;
+    char *key_pkcs12;
+    int pkcs12_key_length;
+} certificate_raw;
+
+</code></pre>
+
+<h4>
+<a id="generate-signed-certificates-" class="anchor" href="#generate-signed-certificates-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generate signed certificates </h4>
+
+<pre><code>ssl_gen.create_signed_keys(cert_entries *entries,struct tm *date_start,struct tm *date_end,int serial,char *passin,int rsa_key_size,ca_cert *cert_item,certificate_raw *certs);
+</code></pre>
+
+<ul>
+<li>
+<code>entries</code> : a set of certificate entries with following structure :</li>
+</ul>
+
+<pre><code>typedef struct {
+    char *country_name;
+    char *state_province_name;
+    char *locality_name;
+    char *organization_name;
+    char *organizational_unit_name;
+    char *common_name;
+} cert_entries;
+</code></pre>
+
+<ul>
+<li>
+<code>date_start</code> and date_end specifying certificate validation timings</li>
+<li>
+<code>serial</code> : specifying certificate serial number to be used</li>
+<li>
+<code>passin</code> : optional password for private key</li>
+<li>
+<code>rsa_key_size</code> : size of key (2048 or more is prefered)</li>
+<li>
+<code>ca_cert</code> : structure defining public/private key of CA cert or cert issuer</li>
+</ul>
+
+<pre><code>typedef struct{
+    char *public_key_pem;
+    int public_key_pem_size;
+    char *private_key_pem;
+    int private_key_pem_size;
+    char *pass;
+} ca_cert;
+</code></pre>
+
+<ul>
+<li>
+<code>certificate_raw</code> : output pointer structure as following :</li>
+</ul>
+
+<pre><code>typedef struct {
+    char *public_key_pem;
+    int public_key_pem_length;
+    char *private_key_pem;
+    int private_key_pem_length;
+    char *key_pkcs12;
+    int pkcs12_key_length;
+} certificate_raw;
+</code></pre>
+
+<h4>
+<a id="specify-output-format-and-file-output" class="anchor" href="#specify-output-format-and-file-output" aria-hidden="true"><span class="octicon octicon-link"></span></a>Specify output format and file output</h4>
+
+<p>By default public and private key are given in PEM format.
+By default, no output file path is specified.</p>
+
+<p>You can specify cert output files for PEM cert as following :</p>
+
+<pre><code>ssl_gen.setOutputPEM(bool enable_pem,char* public_key_file,char* private_key_file);
+</code></pre>
+
+<ul>
+<li>
+<code>enable_pem</code> : enable PEM format (default)</li>
+<li>
+<code>public_key_file</code> : output file for public key in PEM format</li>
+<li>
+<code>private_key_file</code> : output file for private key in PEM format</li>
+</ul>
+
+<p>You can specify cert output files for PKCS12 cert as following :</p>
+
+<pre><code>ssl_gen.setOutputP12(bool enable_p12,char* key_file);
+</code></pre>
+
+<ul>
+<li>
+<code>enable_p12</code> : enable PKCS12 format</li>
+<li>
+<code>key_file</code> : output file for public/private key in PKCS12 format</li>
+</ul>
+
+<h4>
+<a id="generate-dh-key" class="anchor" href="#generate-dh-key" aria-hidden="true"><span class="octicon octicon-link"></span></a>Generate DH key</h4>
+
+<p>Generate Diffie-Hellman key with :</p>
+
+<pre><code>ssl_gen.create_dh_key(int key_size,char* file_path);
+</code></pre>
+
+<ul>
+<li>
+<code>key_size</code> : key size to be used (2048 is preferred)</li>
+<li>
+<code>file_path</code> : required output file path for the key</li>
+</ul>
+
+<p><b>Examples</b></p>
+
+<p>From test project in main.cpp : <a href="http://akinaru.github.io/ssl-cert-generator/sslcertgenerator-test/main.cpp">ssl-cert-generator subproject</a></p>
+
+<p><i>Generate self-signed certificates</i></p>
+
+<pre><code>
+/*instanciate certificate generation lib*/
+sslgen ssl_gen;
+
+/* get system time for date start*/
+time_t systime;
+struct tm *sys_time;
+time(&amp;systime);
+sys_time=localtime(&amp;systime);
+
+/* set end date to 30/08/2019 00:00:00 (current timezone)*/
+struct tm  date_end;
+date_end.tm_year = 2019 - 1900;
+date_end.tm_mon = 8 - 1;
+date_end.tm_mday = 30;
+date_end.tm_hour = 0;
+date_end.tm_min = 0;
+date_end.tm_sec = 0;
+date_end.tm_isdst = sys_time-&gt;tm_isdst;
+
+/*set certificate entries*/
+cert_entries entries;
+entries.country_name=CERT_COUNTRY_NAME;
+entries.state_province_name=CERT_STATE_OR_PROVINCE_NAME;
+entries.locality_name=CERT_LOCALITY_NAME;
+entries.organization_name=CERT_ORGANIZATION_NAME;
+entries.organizational_unit_name=CERT_ORGANIZATION_UNIT_NAME;
+
+/* generate public/private key (we want PEM + PKCS12 format) + output is retrieved through input pointer + file output name*/
+
+/*set output cert as pem certificate (default). If you set file output name. Cert will be written under these files*/
+ssl_gen.setOutputPEM(true,"../../output_test/test.crt","../../output_test/test.key");
+
+/*set output cert as p12 certificate. If you set file output name. Cert will be written under these files*/
+ssl_gen.setOutputP12(true,"../../output_test/test.p12");
+
+certificate_raw certs;
+certificate_raw *certs_ptr;
+certs_ptr=&amp;certs;
+certs_ptr-&gt;public_key_pem="";
+certs_ptr-&gt;private_key_pem="";
+certs_ptr-&gt;key_pkcs12="";
+
+entries.common_name="Github ssl-cert-generator";
+
+/* generate standalone keys (not signed with other certificate) */
+ssl_gen.create_standalone_keys(&amp;entries,sys_time,&amp;date_end,509,"123456",2048,&amp;certs);
+
+cout &lt;&lt; "public cert  : " &lt;&lt; certs_ptr-&gt;public_key_pem &lt;&lt; endl;
+cout &lt;&lt; "private cert : " &lt;&lt; certs_ptr-&gt;private_key_pem &lt;&lt; endl;
+cout &lt;&lt; "p12 binary content : " &lt;&lt; endl;
+utils::printHexFormattedCert(certs_ptr-&gt;key_pkcs12,certs_ptr-&gt;pkcs12_key_length);
+
+</code></pre>
+
+<p><i>Generate signed certificate</i></p>
+
+<pre><code>
+std::ifstream in1("../../cert/ca.key");
+std::string root_ca_key_input((std::istreambuf_iterator&lt;char&gt;(in1)),std::istreambuf_iterator&lt;char&gt;());
+
+std::ifstream in2("../../cert/ca.crt");
+std::string root_ca_pub_input((std::istreambuf_iterator&lt;char&gt;(in2)),std::istreambuf_iterator&lt;char&gt;());
+
+/*set output cert as pem certificate (default). If you set file output name. Cert will be written under these files*/
+ssl_gen.setOutputPEM(true,"../../output_test/client.crt","../../output_test/client.key");
+
+/*set output cert as p12 certificate. If you set file output name. Cert will be written under these files*/
+ssl_gen.setOutputP12(true,"../../output_test/client.p12");
+
+ca_cert ca;
+char *pub = new char[root_ca_pub_input.length() + 1];
+strcpy(pub, root_ca_pub_input.c_str());
+char *key = new char[root_ca_key_input.length() + 1];
+strcpy(key, root_ca_key_input.c_str());
+ca.public_key_pem=pub;
+ca.public_key_pem_size=root_ca_pub_input.length();
+ca.private_key_pem=key;
+ca.private_key_pem_size=root_ca_key_input.length();
+ca.pass="123456";
+
+entries.common_name="Github ssl-cert-generator signed cert";
+
+ssl_gen.create_signed_keys(&amp;entries,sys_time,&amp;date_end,22555,"123456",2048,&amp;ca,&amp;certs);
+
+cout &lt;&lt; "public cert  : " &lt;&lt; certs_ptr-&gt;public_key_pem &lt;&lt; endl;
+cout &lt;&lt; "private cert : " &lt;&lt; certs_ptr-&gt;private_key_pem &lt;&lt; endl;
+cout &lt;&lt; "p12 binary content : " &lt;&lt; endl;
+utils::printHexFormattedCert(certs_ptr-&gt;key_pkcs12,certs_ptr-&gt;pkcs12_key_length);
+
+
+</code></pre>
+
+<h4>
+<a id="checking-and-verifying-certificates" class="anchor" href="#checking-and-verifying-certificates" aria-hidden="true"><span class="octicon octicon-link"></span></a>Checking and Verifying certificates</h4>
+
+<p>Here are some useful openssl command to test your output :</p>
+
+<p><i>Check start date and end date for a PEM certificate</i></p>
+
+<ul>
+<li><code>openssl x509 -startdate -noout -in cert.crt</code></li>
+<li><code>openssl x509 -enddate -noout -in cert.crt</code></li>
+</ul>
+
+<p><i>Check a public PEM key</i></p>
+
+<ul>
+<li>openssl x509 -in cert.crt -text -noout</li>
+</ul>
+
+<p><i>Check a private PEM key</i></p>
+
+<ul>
+<li>openssl rsa -in cert.key -check</li>
+</ul>
+
+<p><i>Check a PKCS12 file</i></p>
+
+<ul>
+<li>openssl pkcs12 -info -in cert.p12</li>
+</ul>
+
+<p><i>Check that public/key pair is uncorrupted</i></p>
+
+<p>Those commands should return same md5 : </p>
+
+<ul>
+<li><code>openssl x509 -noout -modulus -in cert.crt | openssl md5</code></li>
+<li><code>openssl rsa -noout -modulus -in cert.key | openssl md5</code></li>
+</ul>
+
+<p><i>Verify certificate</i></p>
+
+<ul>
+<li><code>openssl verify cert.pem</code></li>
+</ul>
+
+<p><i>Verify certificate chain</i></p>
+
+<ul>
+<li><code>openssl verify -CAfile ca.crt server.crt</code></li>
+</ul>
+
+<p><i>Install certificates on Linux</i></p>
+
+<pre><code>sudo mkdir /usr/share/ca-certificates/extra
+
+sudo cp your_cert.pem /usr/share/ca-certificates/extra/your_cert.crt
+
+sudo dpkg-reconfigure ca-certificates
+
+sudo update-ca-certificates
+</code></pre>
+
+<hr>
+
+<p><b>TODO</b></p>
+
+<ul>
+<li>add static library</li>
+<li>add certificate extensions</li>
+<li>add CA certificate to PKCS12 for signed certificate</li>
+<li>add pass for PKCS12 (distinguished from private key)</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/akinaru/ssl-cert-generator-lib">Ssl-cert-generator-lib</a> is maintained by <a href="https://github.com/akinaru">akinaru</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
