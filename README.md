@@ -1,6 +1,6 @@
 # SSL cert generator library #
 
-http://akinaru.github.io/ssl-cert-generator-cpp/
+http://akinaru.github.io/ssl-cert-generator-lib/
 
 <i>Last update 24/08/2015</i>
 
