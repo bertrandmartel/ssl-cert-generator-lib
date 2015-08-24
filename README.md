@@ -36,6 +36,7 @@ Declare new instance of SslGen :
 SslGen ssl_gen;
 ```
 
+Generate self-signed certificates :
 ```
 ssl_gen.create_standalone_keys(cert_entries *entries,struct tm *date_start,struct tm *date_end,int serial,char *passin,int rsa_key_size,certificate_raw *certs);
 ```
@@ -98,7 +99,9 @@ typedef struct{
     char *pass;
 } ca_cert;
 ```
+
 * `certificate_raw` : output pointer structure as following :
+
 ```
 typedef struct {
     char *public_key_pem;
@@ -108,6 +111,7 @@ typedef struct {
     char *key_pkcs12;
     int pkcs12_key_length;
 } certificate_raw;
+```
 
 <h4>Specify output format and file output</h4>
 
@@ -115,17 +119,21 @@ By default public and private key are given in PEM format.
 By default, no output file path is specified.
 
 You can specify cert output files for PEM cert as following :
+
 ```
 ssl_gen.setOutputPEM(bool enable_pem,char* public_key_file,char* private_key_file);
 ```
+
 * `enable_pem` : enable PEM format (default)
 * `public_key_file` : output file for public key in PEM format
 * `private_key_file` : output file for private key in PEM format
 
 You can specify cert output files for PKCS12 cert as following :
+
 ```
 ssl_gen.setOutputP12(bool enable_p12,char* key_file);
 ```
+
 * `enable_p12` : enable PKCS12 format
 * `key_file` : output file for public/private key in PKCS12 format
 
@@ -146,6 +154,7 @@ From test project in main.cpp : [ssl-cert-generator subproject](http://akinaru.g
 <i>Generate self-signed certificates</i>
 
 ```
+
 /*instanciate certificate generation lib*/
 sslgen ssl_gen;
 
@@ -197,6 +206,7 @@ cout << "public cert  : " << certs_ptr->public_key_pem << endl;
 cout << "private cert : " << certs_ptr->private_key_pem << endl;
 cout << "p12 binary content : " << endl;
 utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+
 ```
 
 <i>Generate signed certificate</i>
@@ -244,8 +254,8 @@ Here are some useful openssl command to test your output :
 
 <i>Check start date and end date for a PEM certificate</i>
 
-*`openssl x509 -startdate -noout -in cert.crt`
-*`openssl x509 -enddate -noout -in cert.crt`
+* `openssl x509 -startdate -noout -in cert.crt`
+* `openssl x509 -enddate -noout -in cert.crt`
 
 <i>Check a public PEM key</i>
 
@@ -262,16 +272,16 @@ Here are some useful openssl command to test your output :
 <i>Check that public/key pair is uncorrupted</i>
 
 Those commands should return same md5 : 
-*`openssl x509 -noout -modulus -in cert.crt | openssl md5`
-*`openssl rsa -noout -modulus -in cert.key | openssl md5`
+* `openssl x509 -noout -modulus -in cert.crt | openssl md5`
+* `openssl rsa -noout -modulus -in cert.key | openssl md5`
 
 <i>Verify certificate</i>
 
-*`openssl verify cert.pem`
+* `openssl verify cert.pem`
 
 <i>Verify certificate chain</i>
 
-*`openssl verify -CAfile ca.crt server.crt`
+* `openssl verify -CAfile ca.crt server.crt`
 
 <i>Install certificates on Linux</i>
 
