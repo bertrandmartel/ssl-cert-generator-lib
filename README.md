@@ -33,7 +33,11 @@ You can export shared library to your library path to use it.
 
 Declare new instance of SslGen :
 ```
-SslGen ssl_gen;
+#include "crypto/sslgen.h"
+
+....
+
+sslGen ssl_gen;
 ```
 
 Generate self-signed certificates :
