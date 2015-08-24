@@ -147,7 +147,7 @@ From test project in main.cpp : [ssl-cert-generator subproject](http://akinaru.g
 
 ```
 /*instanciate certificate generation lib*/
-SslGen ssl_gen;
+sslgen ssl_gen;
 
 /* get system time for date start*/
 time_t systime;
@@ -176,10 +176,10 @@ entries.organizational_unit_name=CERT_ORGANIZATION_UNIT_NAME;
 /* generate public/private key (we want PEM + PKCS12 format) + output is retrieved through input pointer + file output name*/
 
 /*set output cert as pem certificate (default). If you set file output name. Cert will be written under these files*/
-ssl_gen.setOutputPEM(true,"/home/abathur/Bureau/test.crt","/home/abathur/Bureau/test.key");
+ssl_gen.setOutputPEM(true,"../../output_test/test.crt","../../output_test/test.key");
 
 /*set output cert as p12 certificate. If you set file output name. Cert will be written under these files*/
-ssl_gen.setOutputP12(true,"/home/abathur/Bureau/test.p12");
+ssl_gen.setOutputP12(true,"../../output_test/test.p12");
 
 certificate_raw certs;
 certificate_raw *certs_ptr;
@@ -196,22 +196,24 @@ ssl_gen.create_standalone_keys(&entries,sys_time,&date_end,509,"123456",2048,&ce
 cout << "public cert  : " << certs_ptr->public_key_pem << endl;
 cout << "private cert : " << certs_ptr->private_key_pem << endl;
 cout << "p12 binary content : " << endl;
-Utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
 ```
 
 <i>Generate signed certificate</i>
+
 ```
-std::ifstream in1("/home/abathur/Bureau/image/test.key");
+
+std::ifstream in1("../../cert/ca.key");
 std::string root_ca_key_input((std::istreambuf_iterator<char>(in1)),std::istreambuf_iterator<char>());
 
-std::ifstream in2("/home/abathur/Bureau/image/test.crt");
+std::ifstream in2("../../cert/ca.crt");
 std::string root_ca_pub_input((std::istreambuf_iterator<char>(in2)),std::istreambuf_iterator<char>());
 
 /*set output cert as pem certificate (default). If you set file output name. Cert will be written under these files*/
-ssl_gen.setOutputPEM(true,"/home/abathur/Bureau/client.crt","/home/abathur/Bureau/client.key");
+ssl_gen.setOutputPEM(true,"../../output_test/client.crt","../../output_test/client.key");
 
 /*set output cert as p12 certificate. If you set file output name. Cert will be written under these files*/
-ssl_gen.setOutputP12(true,"/home/abathur/Bureau/client.p12");
+ssl_gen.setOutputP12(true,"../../output_test/client.p12");
 
 ca_cert ca;
 char *pub = new char[root_ca_pub_input.length() + 1];
@@ -231,7 +233,8 @@ ssl_gen.create_signed_keys(&entries,sys_time,&date_end,22555,"123456",2048,&ca,&
 cout << "public cert  : " << certs_ptr->public_key_pem << endl;
 cout << "private cert : " << certs_ptr->private_key_pem << endl;
 cout << "p12 binary content : " << endl;
-Utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+
 
 ```
 
