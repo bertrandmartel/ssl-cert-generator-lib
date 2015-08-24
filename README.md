@@ -37,7 +37,7 @@ Declare new instance of SslGen :
 
 ....
 
-sslGen ssl_gen;
+sslgen ssl_gen;
 ```
 
 Generate self-signed certificates :
