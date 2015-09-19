@@ -212,7 +212,7 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
     EVP_MD *digest=0;
 
     if (serial==-1){
-        cout << "Error happened dur to sequence number generation" << endl;
+        cout << "Error happened due to sequence number generation" << endl;
         return -1;
     }
 
@@ -350,7 +350,15 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
     if (is_pem)
     {
         BIO *b64Key = BIO_new (BIO_s_mem());
-        PEM_write_bio_PrivateKey(b64Key, pkey,EVP_aes_256_cbc(), NULL, 0, 0, passin);
+
+        if (strcmp(passin,"")==0){
+
+            PEM_write_bio_PrivateKey(b64Key, pkey,NULL, NULL, 0, 0, NULL);
+        }
+        else{
+            PEM_write_bio_PrivateKey(b64Key, pkey,EVP_aes_256_cbc(), NULL, 0, 0, passin);
+        }
+        
         BUF_MEM *bptrKey;
         BIO_get_mem_ptr(b64Key, &bptrKey);
         int length2 = bptrKey->length;
@@ -434,9 +442,16 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
             fprintf(stderr, "Error opening file %s\n", private_key_pem_file);
             fatal("Error writing to private key file");
         }
-        if (PEM_write_PrivateKey(fp, pkey, EVP_aes_256_cbc(), NULL, 0, 0, passin) != 1)
-            fatal("Error while writing private key");
 
+        if (strcmp(passin,"")==0){
+
+            if (PEM_write_PrivateKey(fp, pkey, NULL, NULL, 0, 0, NULL) != 1)
+                fatal("Error while writing private key");
+        }
+        else{
+            if (PEM_write_PrivateKey(fp, pkey, EVP_aes_256_cbc(), NULL, 0, 0, passin) != 1)
+                fatal("Error while writing private key");
+        }
         fclose(fp);
     }
 
