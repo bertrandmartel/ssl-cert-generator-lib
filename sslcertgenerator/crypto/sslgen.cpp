@@ -205,7 +205,9 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
     if(timediff_end < 0)
        timediff_end = 0;
 
+
     RSA *rsakey=0;
+
     X509 *req=0;
     X509_NAME *subj=0;
     EVP_PKEY *pkey=0;
@@ -218,6 +220,8 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
 
     // openssl setup
     OpenSSL_add_all_algorithms();
+
+
     ERR_load_crypto_strings();
 
     //seed PRNG
@@ -225,6 +229,7 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
 
     // Generate the RSA key
     rsakey = RSA_generate_key(rsa_key_size, RSA_F4, NULL, NULL);
+
 
     // Create evp obj to hold our rsakey
     if (!(pkey = EVP_PKEY_new()))
@@ -254,6 +259,7 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
     if (X509_set_subject_name(req, subj) != 1)
         fatal("Error adding subject to request");
 
+
     if (!isSignWithCa){
 
         createCertEntry(subj,"countryName",entries->country_name);
@@ -275,9 +281,9 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
 
         cout << "signing certs with CA cert" << endl;
 
-        if (cert_item->private_key_pem!=0 && strcmp(cert_item->private_key_pem,"")!=0){
+        if (strcmp(cert_item->private_key_pem.data(),"")!=0){
 
-            if (cert_item->private_key_pem_size>0){
+            if (cert_item->private_key_pem.length()>0){
 
                 createCertEntry(subj,"countryName",entries->country_name);
                 createCertEntry(subj,"stateOrProvinceName",entries->state_province_name);
@@ -287,7 +293,7 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
                 createCertEntry(subj,"commonName",entries->common_name);
 
                 BIO *bioCa = BIO_new(BIO_s_mem());
-                BIO_write(bioCa,cert_item->public_key_pem,cert_item->public_key_pem_size);
+                BIO_write(bioCa,(char*)cert_item->public_key_pem.data(),cert_item->public_key_pem.length());
                 X509 *x509Ca=X509_new();
                 PEM_read_bio_X509(bioCa,&x509Ca,0,0);
 
@@ -297,12 +303,12 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
 
                  BIO *bio = BIO_new(BIO_s_mem());
 
-                 BIO_write(bio,cert_item->private_key_pem,cert_item->private_key_pem_size);
+                 BIO_write(bio,(char*)cert_item->private_key_pem.data(),cert_item->private_key_pem.length());
 
-                 if (strcmp(cert_item->pass,"")!=0){
-                    prv_key = PEM_read_bio_PrivateKey(bio, &prv_key, NULL, cert_item->pass);
+                 if (strcmp(cert_item->pass.data(),"")!=0){
+                    prv_key = PEM_read_bio_PrivateKey(bio, &prv_key, NULL, (char*)cert_item->pass.data());
                  }
-                 else{
+                 else {
                      prv_key = PEM_read_bio_PrivateKey(bio, &prv_key, NULL, NULL);
                  }
 
@@ -310,45 +316,49 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
 
                  if (!(X509_sign(req, prv_key, digest)))
                      fatal("Error signing request");
+
+                 BIO_free(bioCa);
+                 BIO_free(bio);
+                 X509_free(x509Ca);
+                 EVP_PKEY_free(prv_key);
+
             }
-            else{
+            else {
+
                 cout << "CA was not found in database" << endl;
                 return -1;
             }
         }
-        else{
+        else {
+
             cout << "An error has occured! " << endl;
             return -1;
         }
     }
 
-    /*
-     * PEM PUBLIC KEY
-     */
-    if (is_pem)
-    {
+    //PEM PUBLIC KEY
+    if (is_pem) {
+
         BIO *b64Cert = BIO_new (BIO_s_mem());
         PEM_write_bio_X509(b64Cert, req);
         BUF_MEM *bptrCert;
         BIO_get_mem_ptr(b64Cert, &bptrCert);
         int length = bptrCert->length;
-        char* public_key = new char[length];
+        char*  public_key = new char[length];
         BIO_read(b64Cert,public_key,length);
-        certs->public_key_pem=public_key;
-        certs->public_key_pem_length=length;
+
         public_key[length-1]='\0';
-        std::string public_key_str(public_key);
-        delete(public_key);
-        char *cstr = new char[public_key_str.length() + 1];
-        strcpy(cstr, public_key_str.c_str());
-        delete(b64Cert);
-        delete(bptrCert);
+
+        certs->public_key_pem=public_key;
+
+        delete[] public_key;
+        public_key=0;
+        BIO_free(b64Cert);
     }
-    /*
-     * PEM PRIVATE KEY AES 256 ENCODED
-     */
-    if (is_pem)
-    {
+
+    //PEM PRIVATE KEY AES 256 ENCODED
+    if (is_pem) {
+
         BIO *b64Key = BIO_new (BIO_s_mem());
 
         if (strcmp(passin,"")==0){
@@ -364,30 +374,31 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
         int length2 = bptrKey->length;
         char* private_key = new char[length2];
         BIO_read(b64Key,private_key,length2);
-        certs->private_key_pem=private_key;
-        certs->private_key_pem_length=length2;
+
         private_key[length2-1]='\0';
-        std::string private_key_str(private_key);
-        delete(private_key);
-        char *cstr = new char[private_key_str.length() + 1];
-        strcpy(cstr, private_key_str.c_str());
-        delete(b64Key);
-        delete(bptrKey);
+
+        certs->private_key_pem=private_key;
+
+        delete[] private_key;
+        private_key=0;
+        BIO_free(b64Key);
     }
 
-    /*
-     * PKCS12
-     */
+
+    //PKCS12
     PKCS12 *p12;
 
-    p12 = PKCS12_create(passin, entries->common_name, pkey, req, NULL, 0,0,0,0,0);
+    p12 = PKCS12_create(passin, (char*)entries->common_name.data(), pkey, req, NULL, 0,0,0,0,0);
 
     if (isSignWithCa){
-        if (cert_item->public_key_pem!=0 && strcmp(cert_item->public_key_pem,"")!=0){
-            if (cert_item->public_key_pem_size>0){
+
+        if (strcmp(cert_item->public_key_pem.data(),"")!=0){
+
+            if (cert_item->public_key_pem.length()>0){
+
                 BIO *bioCa = BIO_new(BIO_s_mem());
 
-                BIO_write(bioCa,cert_item->public_key_pem,cert_item->public_key_pem_size);
+                BIO_write(bioCa,(char*)cert_item->public_key_pem.data(),cert_item->public_key_pem.length());
 
                 X509 *x509Ca=X509_new();
 
@@ -397,7 +408,9 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
                 sk_X509_push(stackX509,x509Ca);
 
                 PKCS12_free(p12);
-                p12 = PKCS12_create(passin, entries->common_name, pkey, req, stackX509, 0,0,0,0,0);
+                BIO_free(bioCa);
+
+                p12 = PKCS12_create(passin, (char*)entries->common_name.data(), pkey, req, stackX509, 0,0,0,0,0);
 
                 sk_X509_pop_free(stackX509, X509_free);
 
@@ -407,11 +420,9 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
         }
     }
 
-    /**
-      * PKCS12
-      */
-    if (is_p12)
-    {
+    // PKCS12
+    if (is_p12) {
+        
         BIO * p12Bio = BIO_new(BIO_s_mem());
         i2d_PKCS12_bio(p12Bio,p12);
         BUF_MEM *bptrP12;
@@ -419,15 +430,24 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
         int length3 = bptrP12->length;
         char* p12Cert = new char[length3];
         BIO_read(p12Bio,p12Cert,length3);
-        certs->key_pkcs12=p12Cert;
-        certs->pkcs12_key_length=length3;
-        delete(p12Bio);
-        delete(bptrP12);
+
+        vector<char> p12vector(p12Cert,p12Cert+length3);
+
+        certs->key_pkcs12=p12vector;
+
+        delete[] p12Cert;
+        p12Cert=0;
+
+        BIO_free(p12Bio);
     }
 
-    if (is_pem && strcmp(public_key_pem_file,"")!=0){
+
+    if (is_pem && strcmp(public_key_pem_file,"")!=0) {
+
         FILE *fp;
-        if (!(fp = fopen(public_key_pem_file, "w"))){
+
+        if (!(fp = fopen(public_key_pem_file, "w"))) {
+
             fprintf(stderr, "Error opening file %s\n", public_key_pem_file);
             fatal("Error writing to public key file");
         }
@@ -437,8 +457,11 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
     }
 
     if (is_pem && strcmp(private_key_pem_file,"")!=0){
+
         FILE *fp;
+
         if (!(fp = fopen(private_key_pem_file, "w"))){
+
             fprintf(stderr, "Error opening file %s\n", private_key_pem_file);
             fatal("Error writing to private key file");
         }
@@ -455,10 +478,12 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
         fclose(fp);
     }
 
-    if (is_p12 && strcmp(key_p12_file,"")!=0 )
-    {
+    if (is_p12 && strcmp(key_p12_file,"")!=0 ) {
+
         FILE *fp1;
+
         if (!(fp1 = fopen(key_p12_file, "wb"))) {
+
             fprintf(stderr, "Error opening file %s\n", key_p12_file);
             fatal("Error writing to p12 file");
         }
@@ -467,9 +492,15 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
         fclose(fp1);
     }
 
-    EVP_PKEY_free(pkey);
-    X509_free(req);
     PKCS12_free(p12);
+    X509_free(req);
+    EVP_PKEY_free(pkey);
+    RSA_free(rsakey);
+    CRYPTO_cleanup_all_ex_data();
+    ERR_free_strings();
+    ERR_remove_state(0);
+    EVP_cleanup();
+
     return 0;
 }
 
@@ -480,8 +511,8 @@ int sslgen::createKeys(cert_entries *entries, struct tm *dateStart,struct tm *da
  * @param entry_key
  * @param entry_val
  */
-void sslgen::createCertEntry(X509_NAME *subj,char *entry_key,char *entry_val)
-{
+void sslgen::createCertEntry(X509_NAME *subj,char *entry_key,std::string entry_val) {
+
     int nid;                  // ASN numeric identifier
     X509_NAME_ENTRY *ent;
 
@@ -490,14 +521,13 @@ void sslgen::createCertEntry(X509_NAME *subj,char *entry_key,char *entry_val)
         fatal("Error on lookup");
     }
 
-    string value=entry_val;
-
-    if (!(ent = X509_NAME_ENTRY_create_by_NID(NULL, nid, MBSTRING_ASC,reinterpret_cast<unsigned char*>
-        ((char*)value.data()), - 1)))
+    if (!(ent = X509_NAME_ENTRY_create_by_NID(NULL, nid, MBSTRING_ASC,reinterpret_cast<unsigned char*>((char*)entry_val.data()), - 1)))
         fatal("Error creating Name entry from NID");
 
     if (X509_NAME_add_entry(subj, ent, -1, 0) != 1)
         fatal("Error adding entry to Name");
+
+    X509_NAME_ENTRY_free(ent);
 }
 
 /**
@@ -509,8 +539,8 @@ void sslgen::createCertEntry(X509_NAME *subj,char *entry_key,char *entry_val)
  * @param value
  * @return
  */
-int add_ext(X509 *cert,X509* issuer, int nid, char *value)
-{
+int add_ext(X509 *cert,X509* issuer, int nid, char *value) {
+
     X509_EXTENSION *ex;
     X509V3_CTX ctx;
 
@@ -537,8 +567,8 @@ int add_ext(X509 *cert,X509* issuer, int nid, char *value)
  * @param filePath
  * @return
  */
-void * generateDhParamThread(void* filePath)
-{
+void * generateDhParamThread(void* filePath) {
+
     int g=2;//dh parameters
     DH *dh=NULL;
     dh = DH_new();
@@ -553,12 +583,17 @@ void * generateDhParamThread(void* filePath)
     char dhArray[length3];
     BIO_read(dhBio,dhArray,length3);
     FILE *fp;
-    if (!(fp = fopen((char*)filePath, "w")))
-    {
+
+    if (!(fp = fopen((char*)filePath, "w"))) {
+
        cout << "Error writing to dh file";
+
     }
+
     fprintf(fp,"%s",dhArray);
     fclose(fp);
+    DH_free(dh);
+    BIO_free(dhBio);
 
     cout << "DH Params generation has finished!"<< endl;
 
@@ -572,10 +607,10 @@ void * generateDhParamThread(void* filePath)
  * @param file_path
  * @return
  */
-pthread_t sslgen::create_dh_key(int key_size,char* file_path)
-{
-    if (file_path!=0 && strcmp(file_path,"")!=0)
-    {
+pthread_t sslgen::create_dh_key(int key_size,char* file_path) {
+
+    if (file_path!=0 && strcmp(file_path,"")!=0) {
+
         dh_key_size=key_size;
         pthread_t dh_thread;
         cout << "Generate DH Params" << endl;
@@ -600,8 +635,8 @@ pthread_t sslgen::create_dh_key(int key_size,char* file_path)
  * @param line
  * @param msg
  */
-void sslgen::fatal_error(const char *file, int line, const char *msg)
-{
+void sslgen::fatal_error(const char *file, int line, const char *msg) {
+
     fprintf(stderr, "**FATAL** %s:%i %s\n", file, line, msg);
     ERR_print_errors_fp(stderr);
     exit(-1);

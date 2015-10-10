@@ -32,6 +32,7 @@
 #include <string>
 #include <openssl/x509.h>
 #include <pthread.h>
+#include "vector"
 
 /**
  * @brief
@@ -39,12 +40,14 @@
  *
  */
 typedef struct {
-    char *country_name;
-    char *state_province_name;
-    char *locality_name;
-    char *organization_name;
-    char *organizational_unit_name;
-    char *common_name;
+
+    std::string country_name;
+    std::string state_province_name;
+    std::string locality_name;
+    std::string organization_name;
+    std::string organizational_unit_name;
+    std::string common_name;
+
 } cert_entries;
 
 /**
@@ -53,12 +56,11 @@ typedef struct {
  *
  */
 typedef struct {
-    char *public_key_pem;
-    int public_key_pem_length;
-    char *private_key_pem;
-    int private_key_pem_length;
-    char *key_pkcs12;
-    int pkcs12_key_length;
+
+    std::string        public_key_pem;
+    std::string        private_key_pem;
+    std::vector<char>  key_pkcs12;
+
 } certificate_raw;
 
 /**
@@ -67,11 +69,9 @@ typedef struct {
  *
  */
 typedef struct{
-    char *public_key_pem;
-    int public_key_pem_size;
-    char *private_key_pem;
-    int private_key_pem_size;
-    char *pass;
+    std::string public_key_pem;
+    std::string private_key_pem;
+    std::string pass;
 } ca_cert;
 
 class sslgen
@@ -182,7 +182,7 @@ public:
      * @param entry_key
      * @param entry_val
      */
-    void createCertEntry(X509_NAME *subj,char *entry_key,char *entry_val);
+    void createCertEntry(X509_NAME *subj,char *entry_key,std::string entry_val);
 
     /**
      * @brief SslGen::fatal_error

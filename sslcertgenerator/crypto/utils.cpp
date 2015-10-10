@@ -9,7 +9,7 @@ utils::utils()
 {
 }
 
-void utils::printBinaryFormattedCert(char * data,int length)
+void utils::printBinaryFormattedCert(std::vector<char> data,int length)
 {
     for (int i = 0; i  < length;i++)
     {
@@ -23,16 +23,16 @@ void utils::printBinaryFormattedCert(char * data,int length)
     }
 }
 
-void utils::printHexFormattedCert(char * data,int length)
+void utils::printHexFormattedCert(std::vector<char> data,int length)
 {
     char const hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',   'B','C','D','E','F'};
 
     char group=0;
     std::string str;
     for (int i = 0; i < length; ++i) {
-        const char ch = data[i];
-        str.append(&hex[(ch  & 0xF0) >> 4], 1);
-        str.append(&hex[ch & 0xF], 1);
+
+        str.append(&hex[(data[i]  & 0xF0) >> 4], 1);
+        str.append(&hex[data[i] & 0xF], 1);
         if (group==1){
             str.append(" ");
             group=0;

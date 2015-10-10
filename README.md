@@ -2,7 +2,7 @@
 
 http://akinaru.github.io/ssl-cert-generator-lib/
 
-<i>Last update 24/08/2015</i>
+<i>Last update 11/10/2015</i>
 
 Generate SSL certificates using openssl api :
 
@@ -48,12 +48,12 @@ ssl_gen.create_standalone_keys(cert_entries *entries,struct tm *date_start,struc
 * `entries` : a set of certificate entries with following structure :
 ```
 typedef struct {
-    char *country_name;
-    char *state_province_name;
-    char *locality_name;
-    char *organization_name;
-    char *organizational_unit_name;
-    char *common_name;
+    std::string country_name;
+    std::string state_province_name;
+    std::string locality_name;
+    std::string organization_name;
+    std::string organizational_unit_name;
+    std::string common_name;
 } cert_entries;
 ```
 * `date_start` and `date_end` specifying certificate validation timings
@@ -63,12 +63,9 @@ typedef struct {
 * `certificate_raw` : output pointer structure as following :
 ```
 typedef struct {
-    char *public_key_pem;
-    int public_key_pem_length;
-    char *private_key_pem;
-    int private_key_pem_length;
-    char *key_pkcs12;
-    int pkcs12_key_length;
+    std::string       public_key_pem;
+    std::string       private_key_pem;
+    std::vector<char> key_pkcs12;
 } certificate_raw;
 
 ```
@@ -81,12 +78,12 @@ ssl_gen.create_signed_keys(cert_entries *entries,struct tm *date_start,struct tm
 * `entries` : a set of certificate entries with following structure :
 ```
 typedef struct {
-    char *country_name;
-    char *state_province_name;
-    char *locality_name;
-    char *organization_name;
-    char *organizational_unit_name;
-    char *common_name;
+    std::string country_name;
+    std::string state_province_name;
+    std::string locality_name;
+    std::string organization_name;
+    std::string organizational_unit_name;
+    std::string common_name;
 } cert_entries;
 ```
 * `date_start` and date_end specifying certificate validation timings
@@ -96,11 +93,9 @@ typedef struct {
 * `ca_cert` : structure defining public/private key of CA cert or cert issuer
 ```
 typedef struct{
-    char *public_key_pem;
-    int public_key_pem_size;
-    char *private_key_pem;
-    int private_key_pem_size;
-    char *pass;
+    std::string public_key_pem;
+    std::string private_key_pem;
+    std::string pass;
 } ca_cert;
 ```
 
@@ -108,12 +103,9 @@ typedef struct{
 
 ```
 typedef struct {
-    char *public_key_pem;
-    int public_key_pem_length;
-    char *private_key_pem;
-    int private_key_pem_length;
-    char *key_pkcs12;
-    int pkcs12_key_length;
+    std::string       public_key_pem;
+    std::string       private_key_pem;
+    std::vector<char> key_pkcs12;
 } certificate_raw;
 ```
 
@@ -199,7 +191,6 @@ certificate_raw *certs_ptr;
 certs_ptr=&certs;
 certs_ptr->public_key_pem="";
 certs_ptr->private_key_pem="";
-certs_ptr->key_pkcs12="";
 
 entries.common_name="Github ssl-cert-generator";
 
@@ -209,7 +200,7 @@ ssl_gen.create_standalone_keys(&entries,sys_time,&date_end,509,"123456",2048,&ce
 cout << "public cert  : " << certs_ptr->public_key_pem << endl;
 cout << "private cert : " << certs_ptr->private_key_pem << endl;
 cout << "p12 binary content : " << endl;
-utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->key_pkcs12.size());
 
 ```
 
@@ -230,14 +221,8 @@ ssl_gen.setOutputPEM(true,"../../output_test/client.crt","../../output_test/clie
 ssl_gen.setOutputP12(true,"../../output_test/client.p12");
 
 ca_cert ca;
-char *pub = new char[root_ca_pub_input.length() + 1];
-strcpy(pub, root_ca_pub_input.c_str());
-char *key = new char[root_ca_key_input.length() + 1];
-strcpy(key, root_ca_key_input.c_str());
-ca.public_key_pem=pub;
-ca.public_key_pem_size=root_ca_pub_input.length();
-ca.private_key_pem=key;
-ca.private_key_pem_size=root_ca_key_input.length();
+ca.public_key_pem=root_ca_pub_input;
+ca.private_key_pem=root_ca_key_input;
 ca.pass="123456";
 
 entries.common_name="Github ssl-cert-generator signed cert";
@@ -247,7 +232,7 @@ ssl_gen.create_signed_keys(&entries,sys_time,&date_end,22555,"123456",2048,&ca,&
 cout << "public cert  : " << certs_ptr->public_key_pem << endl;
 cout << "private cert : " << certs_ptr->private_key_pem << endl;
 cout << "p12 binary content : " << endl;
-utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->key_pkcs12.size());
 
 
 ```
@@ -300,6 +285,14 @@ sudo update-ca-certificates
 ```
 
 <hr/>
+
+<b>Memory checking</b>
+
+Project is memcheck free
+
+``
+valgrind --tool=memcheck --leak-check=full ./main
+``
 
 <b>TODO</b>
 

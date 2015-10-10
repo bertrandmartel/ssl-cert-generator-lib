@@ -1,23 +1,24 @@
 CXX=g++
-CFLAGS=-Wno-write-strings
+CFLAGS=-g -Wno-write-strings
 
 RELEASE_DIR=release
 LIB_DIR=lib
 OBJECTS=main.o crypto/utils.o
-LIBS=-pthread -lssl -lcrypto 
+HEADERS=-I./libs -L./libs 
+LIBS=-pthread -lssl -lcrypto -ldl 
 
 default: libsslgen.so libsslgen.a $(OBJECTS)
-		$(CXX) $(CFLAGS) -o $(RELEASE_DIR)/main $(OBJECTS) -L$(RELEASE_DIR) -lsslgen $(LIBS)
 		cp crypto/*.h $(RELEASE_DIR)/
+		$(CXX) $(HEADERS) -I./release -L$(RELEASE_DIR) $(CFLAGS) -o $(RELEASE_DIR)/main $(OBJECTS) -lsslgen $(LIBS) 
 
 %.o: %.cpp
-		$(CXX) -c  $< $(CFLAGS) -o $@ $(LIBS) -lsslgen 
+		$(CXX) $(HEADERS) -c  $< $(CFLAGS) -o $@ $(LIBS)
 
 libsslgen.so: crypto/sslgen.cpp
 		mkdir -p $(RELEASE_DIR)
 		mkdir -p $(LIB_DIR)
-		$(CXX) $(CFLAGS) -c crypto/sslgen.cpp -o crypto/sslgen.o  $(LIBS)
-		$(CXX) $(CFLAGS) -shared  -Wl,-soname,libsslgen.so -o $(LIB_DIR)/libsslgen.so crypto/sslgen.o $(LIBS)
+		$(CXX) $(HEADERS) $(CFLAGS) -c crypto/sslgen.cpp -o crypto/sslgen.o  $(LIBS)
+		$(CXX) $(HEADERS) $(CFLAGS) -shared  -Wl,-soname,libsslgen.so -o $(LIB_DIR)/libsslgen.so crypto/sslgen.o $(LIBS)
 
 libsslgen.a: crypto/sslgen.cpp
 		ar rcs $(RELEASE_DIR)/libsslgen.a crypto/sslgen.o

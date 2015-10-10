@@ -53,13 +53,13 @@ int main(int argc, char *argv[]){
     /*instanciate certificate generation lib*/
     sslgen ssl_gen;
 
-    /* get system time for date start*/
+    // get system time for date start
     time_t systime;
     struct tm *sys_time;
     time(&systime);
     sys_time=localtime(&systime);
 
-    /* set end date to 30/08/2019 00:00:00 (current timezone)*/
+    // set end date to 30/08/2019 00:00:00 (current timezone)
     struct tm  date_end;
     date_end.tm_year = 2019 - 1900;
     date_end.tm_mon = 8 - 1;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
     date_end.tm_sec = 0;
     date_end.tm_isdst = sys_time->tm_isdst;
 
-    /*set certificate entries*/
+    //set certificate entries
     cert_entries entries;
     entries.country_name=CERT_COUNTRY_NAME;
     entries.state_province_name=CERT_STATE_OR_PROVINCE_NAME;
@@ -77,12 +77,12 @@ int main(int argc, char *argv[]){
     entries.organization_name=CERT_ORGANIZATION_NAME;
     entries.organizational_unit_name=CERT_ORGANIZATION_UNIT_NAME;
 
-    /* generate public/private key (we want PEM + PKCS12 format) + output is retrieved through input pointer + file output name*/
+    // generate public/private key (we want PEM + PKCS12 format) + output is retrieved through input pointer + file output name
 
-    /*set output cert as pem certificate (default). If you set file output name. Cert will be written under these files*/
+    //set output cert as pem certificate (default). If you set file output name. Cert will be written under these files
     ssl_gen.setOutputPEM(true,"../../output_test/test.crt","../../output_test/test.key");
 
-    /*set output cert as p12 certificate. If you set file output name. Cert will be written under these files*/
+    //set output cert as p12 certificate. If you set file output name. Cert will be written under these files
     ssl_gen.setOutputP12(true,"../../output_test/test.p12");
 
     certificate_raw certs;
@@ -90,17 +90,17 @@ int main(int argc, char *argv[]){
     certs_ptr=&certs;
     certs_ptr->public_key_pem="";
     certs_ptr->private_key_pem="";
-    certs_ptr->key_pkcs12="";
 
     entries.common_name="Github ssl-cert-generator";
 
-    /* generate standalone keys (not signed with other certificate) */
+
+    // generate standalone keys (not signed with other certificate)
     ssl_gen.create_standalone_keys(&entries,sys_time,&date_end,509,"123456",2048,&certs);
 
     cout << "public cert  : " << certs_ptr->public_key_pem << endl;
     cout << "private cert : " << certs_ptr->private_key_pem << endl;
     cout << "p12 binary content : " << endl;
-    utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+    utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->key_pkcs12.size());
 
     cout << "##########################################################" << endl;
 
@@ -110,21 +110,16 @@ int main(int argc, char *argv[]){
     std::ifstream in2("../../cert/ca.crt");
     std::string root_ca_pub_input((std::istreambuf_iterator<char>(in2)),std::istreambuf_iterator<char>());
 
-    /*set output cert as pem certificate (default). If you set file output name. Cert will be written under these files*/
+    //set output cert as pem certificate (default). If you set file output name. Cert will be written under these files
     ssl_gen.setOutputPEM(true,"../../output_test/client.crt","../../output_test/client.key");
 
-    /*set output cert as p12 certificate. If you set file output name. Cert will be written under these files*/
+    //set output cert as p12 certificate. If you set file output name. Cert will be written under these files
     ssl_gen.setOutputP12(true,"../../output_test/client.p12");
 
     ca_cert ca;
-    char *pub = new char[root_ca_pub_input.length() + 1];
-    strcpy(pub, root_ca_pub_input.c_str());
-    char *key = new char[root_ca_key_input.length() + 1];
-    strcpy(key, root_ca_key_input.c_str());
-    ca.public_key_pem=pub;
-    ca.public_key_pem_size=root_ca_pub_input.length();
-    ca.private_key_pem=key;
-    ca.private_key_pem_size=root_ca_key_input.length();
+    ca.public_key_pem=root_ca_pub_input;
+    ca.private_key_pem=root_ca_key_input;
+
     ca.pass="123456";
 
     entries.common_name="Github ssl-cert-generator signed cert";
@@ -134,15 +129,15 @@ int main(int argc, char *argv[]){
     cout << "public cert  : " << certs_ptr->public_key_pem << endl;
     cout << "private cert : " << certs_ptr->private_key_pem << endl;
     cout << "p12 binary content : " << endl;
-    utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->pkcs12_key_length);
+    utils::printHexFormattedCert(certs_ptr->key_pkcs12,certs_ptr->key_pkcs12.size());
 
     cout << "##########################################################" << endl;
 
-    /*CA certificate used to sign keys*/
+    //CA certificate used to sign keys
 
     pthread_t thread = ssl_gen.create_dh_key(1024,"../../output_test/dh.key");
 
-    /*wait for thread to finish*/
+    //wait for thread to finish
     int rc = pthread_join(thread, NULL);
 
     return 0;
