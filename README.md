@@ -294,6 +294,8 @@ Project is memcheck free
 valgrind --tool=memcheck --leak-check=full ./main
 ``
 
+Project is built with openssl library built with -DPURIFY option to avoid valgrind to complain about uninitialized data ("Conditional jump or move depends on uninitialised value(s)" warnings).
+
 <b>TODO</b>
 
 * add static library
