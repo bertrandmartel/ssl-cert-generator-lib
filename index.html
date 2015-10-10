@@ -2,7 +2,7 @@
 <html lang="en-us">
   <head>
     <meta charset="UTF-8">
-    <title>Ssl-cert-generator-lib by akinaru</title>
+    <title>ssl-cert-generator-lib by akinaru</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -11,7 +11,7 @@
   </head>
   <body>
     <section class="page-header">
-      <h1 class="project-name">Ssl-cert-generator-lib</h1>
+      <h1 class="project-name">ssl-cert-generator-lib</h1>
       <h2 class="project-tagline">OpenSSL certificate generator library</h2>
       <a href="https://github.com/akinaru/ssl-cert-generator-lib" class="btn">View on GitHub</a>
       <a href="https://github.com/akinaru/ssl-cert-generator-lib/zipball/master" class="btn">Download .zip</a>
@@ -22,9 +22,9 @@
       <h1>
 <a id="ssl-cert-generator-library" class="anchor" href="#ssl-cert-generator-library" aria-hidden="true"><span class="octicon octicon-link"></span></a>SSL cert generator library</h1>
 
-<p><a href="http://akinaru.github.io/ssl-cert-generator-cpp/">http://akinaru.github.io/ssl-cert-generator-cpp/</a></p>
+<p><a href="http://akinaru.github.io/ssl-cert-generator-lib/">http://akinaru.github.io/ssl-cert-generator-lib/</a></p>
 
-<p><i>Last update 24/08/2015</i></p>
+<p><i>Last update 11/10/2015</i></p>
 
 <p>Generate SSL certificates using openssl api :</p>
 
@@ -58,7 +58,11 @@ make
 
 <p>Declare new instance of SslGen :</p>
 
-<pre><code>SslGen ssl_gen;
+<pre><code>#include "crypto/sslgen.h"
+
+....
+
+sslgen ssl_gen;
 </code></pre>
 
 <p>Generate self-signed certificates :</p>
@@ -72,12 +76,12 @@ make
 </ul>
 
 <pre><code>typedef struct {
-    char *country_name;
-    char *state_province_name;
-    char *locality_name;
-    char *organization_name;
-    char *organizational_unit_name;
-    char *common_name;
+    std::string country_name;
+    std::string state_province_name;
+    std::string locality_name;
+    std::string organization_name;
+    std::string organizational_unit_name;
+    std::string common_name;
 } cert_entries;
 </code></pre>
 
@@ -95,12 +99,9 @@ make
 </ul>
 
 <pre><code>typedef struct {
-    char *public_key_pem;
-    int public_key_pem_length;
-    char *private_key_pem;
-    int private_key_pem_length;
-    char *key_pkcs12;
-    int pkcs12_key_length;
+    std::string       public_key_pem;
+    std::string       private_key_pem;
+    std::vector&lt;char&gt; key_pkcs12;
 } certificate_raw;
 
 </code></pre>
@@ -117,12 +118,12 @@ make
 </ul>
 
 <pre><code>typedef struct {
-    char *country_name;
-    char *state_province_name;
-    char *locality_name;
-    char *organization_name;
-    char *organizational_unit_name;
-    char *common_name;
+    std::string country_name;
+    std::string state_province_name;
+    std::string locality_name;
+    std::string organization_name;
+    std::string organizational_unit_name;
+    std::string common_name;
 } cert_entries;
 </code></pre>
 
@@ -140,11 +141,9 @@ make
 </ul>
 
 <pre><code>typedef struct{
-    char *public_key_pem;
-    int public_key_pem_size;
-    char *private_key_pem;
-    int private_key_pem_size;
-    char *pass;
+    std::string public_key_pem;
+    std::string private_key_pem;
+    std::string pass;
 } ca_cert;
 </code></pre>
 
@@ -154,12 +153,9 @@ make
 </ul>
 
 <pre><code>typedef struct {
-    char *public_key_pem;
-    int public_key_pem_length;
-    char *private_key_pem;
-    int private_key_pem_length;
-    char *key_pkcs12;
-    int pkcs12_key_length;
+    std::string       public_key_pem;
+    std::string       private_key_pem;
+    std::vector&lt;char&gt; key_pkcs12;
 } certificate_raw;
 </code></pre>
 
@@ -212,7 +208,7 @@ By default, no output file path is specified.</p>
 
 <p><b>Examples</b></p>
 
-<p>From test project in main.cpp : <a href="http://akinaru.github.io/ssl-cert-generator/sslcertgenerator-test/main.cpp">ssl-cert-generator subproject</a></p>
+<p><a href="https://github.com/akinaru/ssl-cert-generator-lib/blob/master/sslcertgenerator/main.cpp">From test project in main.cpp</a></p>
 
 <p><i>Generate self-signed certificates</i></p>
 
@@ -257,7 +253,6 @@ certificate_raw *certs_ptr;
 certs_ptr=&amp;certs;
 certs_ptr-&gt;public_key_pem="";
 certs_ptr-&gt;private_key_pem="";
-certs_ptr-&gt;key_pkcs12="";
 
 entries.common_name="Github ssl-cert-generator";
 
@@ -267,7 +262,7 @@ ssl_gen.create_standalone_keys(&amp;entries,sys_time,&amp;date_end,509,"123456",
 cout &lt;&lt; "public cert  : " &lt;&lt; certs_ptr-&gt;public_key_pem &lt;&lt; endl;
 cout &lt;&lt; "private cert : " &lt;&lt; certs_ptr-&gt;private_key_pem &lt;&lt; endl;
 cout &lt;&lt; "p12 binary content : " &lt;&lt; endl;
-utils::printHexFormattedCert(certs_ptr-&gt;key_pkcs12,certs_ptr-&gt;pkcs12_key_length);
+utils::printHexFormattedCert(certs_ptr-&gt;key_pkcs12,certs_ptr-&gt;key_pkcs12.size());
 
 </code></pre>
 
@@ -287,14 +282,8 @@ ssl_gen.setOutputPEM(true,"../../output_test/client.crt","../../output_test/clie
 ssl_gen.setOutputP12(true,"../../output_test/client.p12");
 
 ca_cert ca;
-char *pub = new char[root_ca_pub_input.length() + 1];
-strcpy(pub, root_ca_pub_input.c_str());
-char *key = new char[root_ca_key_input.length() + 1];
-strcpy(key, root_ca_key_input.c_str());
-ca.public_key_pem=pub;
-ca.public_key_pem_size=root_ca_pub_input.length();
-ca.private_key_pem=key;
-ca.private_key_pem_size=root_ca_key_input.length();
+ca.public_key_pem=root_ca_pub_input;
+ca.private_key_pem=root_ca_key_input;
 ca.pass="123456";
 
 entries.common_name="Github ssl-cert-generator signed cert";
@@ -304,7 +293,7 @@ ssl_gen.create_signed_keys(&amp;entries,sys_time,&amp;date_end,22555,"123456",20
 cout &lt;&lt; "public cert  : " &lt;&lt; certs_ptr-&gt;public_key_pem &lt;&lt; endl;
 cout &lt;&lt; "private cert : " &lt;&lt; certs_ptr-&gt;private_key_pem &lt;&lt; endl;
 cout &lt;&lt; "p12 binary content : " &lt;&lt; endl;
-utils::printHexFormattedCert(certs_ptr-&gt;key_pkcs12,certs_ptr-&gt;pkcs12_key_length);
+utils::printHexFormattedCert(certs_ptr-&gt;key_pkcs12,certs_ptr-&gt;key_pkcs12.size());
 
 
 </code></pre>
@@ -373,6 +362,18 @@ sudo update-ca-certificates
 
 <hr>
 
+<p><b>Memory checking</b></p>
+
+<p>Project is memcheck free</p>
+
+<p><code>
+valgrind --tool=memcheck --leak-check=full ./main
+</code></p>
+
+<p>Project is built with openssl library built with -DPURIFY option to avoid valgrind to complain about uninitialized data ("Conditional jump or move depends on uninitialised value(s)" warnings).</p>
+
+<p><a href="https://www.openssl.org/docs/faq.html#PROG14">https://www.openssl.org/docs/faq.html#PROG14</a></p>
+
 <p><b>TODO</b></p>
 
 <ul>
@@ -383,7 +384,7 @@ sudo update-ca-certificates
 </ul>
 
       <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/akinaru/ssl-cert-generator-lib">Ssl-cert-generator-lib</a> is maintained by <a href="https://github.com/akinaru">akinaru</a>.</span>
+        <span class="site-footer-owner"><a href="https://github.com/akinaru/ssl-cert-generator-lib">ssl-cert-generator-lib</a> is maintained by <a href="https://github.com/akinaru">akinaru</a>.</span>
 
         <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
