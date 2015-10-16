@@ -16,16 +16,12 @@ Generate SSL certificates using openssl api :
 
 <h4>Generality</h4>
 
-Library is generated as a shared library (.dll or .so)
-
 ```
 cd sslcertgenerator
 make
 ```
 
 Library release is under `release` directory.
-
-You can export shared library to your library path to use it.
 
 <hr/>
 
