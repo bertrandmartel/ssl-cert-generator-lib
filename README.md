@@ -1,6 +1,6 @@
 # SSL cert generator library #
 
-http://akinaru.github.io/ssl-cert-generator-lib/
+http://bertrandmartel.github.io/ssl-cert-generator-lib/
 
 <i>Last update 11/10/2015</i>
 
@@ -141,7 +141,7 @@ ssl_gen.create_dh_key(int key_size,char* file_path);
 
 <b>Examples</b>
 
-[From test project in main.cpp](https://github.com/akinaru/ssl-cert-generator-lib/blob/master/sslcertgenerator/main.cpp)
+[From test project in main.cpp](https://github.com/bertrandmartel/ssl-cert-generator-lib/blob/master/sslcertgenerator/main.cpp)
 
 <i>Generate self-signed certificates</i>
 
